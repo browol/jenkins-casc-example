@@ -1,0 +1,6 @@
+# See https://github.com/jenkinsci/configuration-as-code-plugin/tree/master/demos/global-matrix-auth
+jenkins:
+  authorizationStrategy:
+    globalMatrix:
+      permissions:
+        - "GROUP:Overall/Administer:authenticated"

@@ -1,0 +1,28 @@
+FROM jenkins/jenkins:2.401.1-lts
+
+USER root
+
+ENV JENKINS_HOME=/var/jenkins_home
+ENV JENKINS_UC=https://updates.jenkins.io
+ENV CASC_JENKINS_CONFIG=$JENKINS_HOME/casc_configs
+
+# Add CaC directory
+RUN mkdir -p $CASC_JENKINS_CONFIG
+COPY cac/* $CASC_JENKINS_CONFIG/
+
+# Add init.groovy.d directory
+RUN mkdir -p $JENKINS_HOME/init.groovy.d
+COPY init.groovy.d/* $JENKINS_HOME/init.groovy.d/
+
+# Add init.script.dsl directory
+RUN mkdir -p $JENKINS_HOME/init.script.dsl
+COPY init.script.dsl/* $JENKINS_HOME/init.script.dsl/
+
+# Installing Custom Plugins
+COPY plugins.txt $JENKINS_HOME/plugins.txt
+RUN jenkins-plugin-cli -f $JENKINS_HOME/plugins.txt
+
+# To indicate that this Jenkins installation is fully configured.
+RUN echo 2.0 > /usr/share/jenkins/ref/jenkins.install.UpgradeWizard.state
+
+USER jenkins

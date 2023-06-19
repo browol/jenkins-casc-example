@@ -1,0 +1,9 @@
+# See https://github.com/jenkinsci/configuration-as-code-plugin/tree/master/demos/github-oauth
+jenkins:
+  securityRealm:
+    github:
+      githubWebUri: "https://github.com"
+      githubApiUri: "https://api.github.com"
+      clientID: "9fdd82206902a82bdec6"
+      clientSecret: "${GITHUB_SECRET}"
+      oauthScopes: "read:org,user:email"

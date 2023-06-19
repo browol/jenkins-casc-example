@@ -1,0 +1,19 @@
+import java.text.SimpleDateFormat
+import java.util.Date
+
+pipeline {
+    agent {
+        label('built-in')
+    }
+    stages {
+        stage('Deploy') {
+            steps {
+                script {
+                    def buildCmd = "kustomize build nginx/nginx-unprivileged/deploy"
+                    sh("${buildCmd} | kubectl apply -f -")
+                    sh("${buildCmd} | kubectl get -f -")
+                }
+            }
+        }
+    }
+}

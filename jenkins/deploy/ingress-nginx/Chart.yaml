@@ -1,0 +1,9 @@
+apiVersion: v2
+name: ingress-nginx
+description: Ingress controller for Kubernetes using NGINX as a reverse proxy and load balancer
+type: application
+version: 4.7.0
+dependencies:
+- name: ingress-nginx
+  repository: file://charts/ingress-nginx
+  version: 4.7.0

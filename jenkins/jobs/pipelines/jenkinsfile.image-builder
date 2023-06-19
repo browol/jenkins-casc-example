@@ -1,0 +1,45 @@
+import java.text.SimpleDateFormat
+import java.util.Date
+
+pipeline {
+    agent {
+        label('built-in')
+    }
+    stages {
+        stage('Check') {
+            steps {
+                script {
+                    echo "Hello!"
+                    def version = sh(script: "buildctl --version", returnStdout: true)
+                    echo "Buildctl version: ${version}"
+                    echo "Buildkitd address: ${env.BUILDKIT_ADDR}"
+                    echo "Destination container registry: ${env.REGISTRY_URL}/${env.IMAGE_NAME}"
+
+                    if (env.IMAGE_TAG.isEmpty()) {
+                        echo "Image tag isn't specified, fallback to default."
+                        def date = new Date()
+                        def formattedDate = new SimpleDateFormat("yyyy-MM").format(date)
+                        env.IMAGE_TAG = formattedDate
+                    }
+                    echo "Image tag: ${env.IMAGE_TAG}"
+                }
+            }
+        }
+        stage('Build') {
+            steps {
+                script {
+                    sh([
+                        "buildctl",
+                        "--addr ${env.BUILDKIT_ADDR}",
+                        "build --frontend dockerfile.v0",
+                        "--local context=nginx/nginx-unprivileged/app/",
+                        "--local dockerfile=nginx/nginx-unprivileged/",
+                        "--output type=image,name=${env.REGISTRY_URL}/${env.IMAGE_NAME}:${env.IMAGE_TAG},push=true",
+                        "--export-cache type=registry,ref=${env.REGISTRY_URL}/${env.IMAGE_NAME}:${env.IMAGE_TAG}-cache",
+                        "--import-cache type=registry,ref=${env.REGISTRY_URL}/${env.IMAGE_NAME}:${env.IMAGE_TAG}-cache"
+                    ].join(" "))
+                }
+            }
+        }
+    }
+}

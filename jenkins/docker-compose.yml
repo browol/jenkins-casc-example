@@ -1,0 +1,14 @@
+version: '3.3'
+services:
+  jenkins:
+    build:
+      context: ./build
+      dockerfile: Dockerfile.base
+    ports:
+      - "8080:8080"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+    environment:
+      - GITHUB_SECRET=<GITHUB_OAUTH2_CLIENT_SECRET>
+volumes:
+  jenkins_home:

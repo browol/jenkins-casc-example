@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/name: jenkins
+  name: jenkins
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: jenkins
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: jenkins
+    spec:
+      containers:
+      - image: acrdemo3fh45a.azurecr.io/jenkins/jenkins:extended-v2.401.1
+        imagePullPolicy: Always
+        name: jenkins
+        ports:
+        - containerPort: 8080
+          name: web
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 200m
+            memory: 1000Mi
+        env:
+        - name: JENKINS_HOME
+          value: /var/jenkins_home
+        - name: JENKINS_UC
+          value: https://updates.jenkins.io
+        - name: SECRETS
+          value: /secrets/jenkins
+        - name: BUILDKIT_ADDR
+          value: tcp://buildkitd:1234
+        - name: CONFIGURATION_REPOSITORY_URL
+          value: https://github.com/browol/ci-cd-pipeline.git
+        - name: CONFIGURATION_REPOSITORY_SUBFOLDER
+          value: jenkins/jobs
+        - name: CONFIGURATION_REPOSITORY_BRANCH
+          value: jenkins
+        - name: DOCKER_CONFIG
+          value: /.docker
+        volumeMounts:
+        - name: env-jenkins
+          mountPath: /secrets/jenkins
+          readOnly: true
+        - name: docker-config
+          mountPath: /.docker
+          readOnly: true
+      restartPolicy: Always
+      volumes:
+      - name: env-jenkins
+        secret:
+          secretName: env-jenkins
+      - name: docker-config
+        secret:
+          secretName: docker-config

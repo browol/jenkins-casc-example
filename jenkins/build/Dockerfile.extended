@@ -1,0 +1,56 @@
+FROM moby/buildkit:master as buildctl
+
+FROM acrdemo3fh45a.azurecr.io/jenkins/jenkins:base-v2.401.1
+
+USER root
+
+# See https://github.com/helm/helm/releases
+ARG HELM_PROXY=https://get.helm.sh
+ARG HELM_VERSION=3.12.1
+RUN set -o xtrace -o nounset && \
+    location=${HELM_PROXY}/helm-v${HELM_VERSION}-linux-amd64.tar.gz && \
+    archive=/tmp/helm.tar.gz && \
+    curl -fsSL --output ${archive} ${location} && \
+    curl -fsSL --output ${archive}.sha256 ${location}.sha256 && \
+    echo $(cat ${archive}.sha256) ${archive} | sha256sum --check - && \
+    tar xzf ${archive} --directory /usr/local/bin/ --strip-components 1 --wildcards "**/helm" && \
+    rm ${archive}*
+
+# See https://dl.k8s.io/release/stable.txt
+ARG KUBECTL_VERSION=1.27.3
+ARG KUBECTL_PROXY=https://dl.k8s.io
+RUN set -o xtrace -o nounset && \
+    location=${KUBECTL_PROXY}/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl && \
+    curl -fsSL --output /usr/local/bin/kubectl ${location} && \
+    chmod +x /usr/local/bin/kubectl
+
+# See https://github.com/kubernetes-sigs/kustomize/releases
+ARG KUSTOMIZE_VERSION=5.0.3
+RUN set -o xtrace -o nounset && \
+    archive=$(mktemp) && \
+    location="https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv${KUSTOMIZE_VERSION}/kustomize_v${KUSTOMIZE_VERSION}_linux_amd64.tar.gz" && \
+    curl -fsSL -o ${archive} ${location} && \
+    tar -xvzf ${archive} -C /usr/local/bin/ && \
+    chmod +x /usr/local/bin/kustomize && \
+    rm ${archive}
+
+# See https://github.com/stedolan/jq/releases/
+ARG JQ_VERSION=1.6
+RUN set -o xtrace -o nounset && \
+    location="https://github.com/stedolan/jq/releases/download/jq-${JQ_VERSION}/jq-linux64" && \
+    curl -fsSL --output /usr/local/bin/jq ${location} && \
+    chmod +x /usr/local/bin/jq
+
+# See https://github.com/mikefarah/yq/releases/
+ARG YQ_VERSION=4.32.2
+RUN set -o xtrace -o nounset && \
+    location="https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64" && \
+    binary="/usr/local/bin/yq" && \
+    curl -fsSL --output ${binary} ${location} && \
+    chmod +x ${binary}
+
+ARG BUILDCTL_PATH=/usr/bin/buildctl
+COPY --from=buildctl $BUILDCTL_PATH $BUILDCTL_PATH
+RUN chmod +x $BUILDCTL_PATH
+
+USER jenkins
