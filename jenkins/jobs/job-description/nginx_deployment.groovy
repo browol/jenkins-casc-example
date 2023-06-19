@@ -8,7 +8,7 @@ pipelineJob('Nginx Deployment') {
                         url('https://github.com/browol/ci-cd-pipeline.git')
                         credentials('git-token-credentials')
                     }
-                    branch('jenkins')
+                    branch('main')
                 }
                 scriptPath('jenkins/jobs/pipelines/jenkinsfile.nginx-deployment')
             }

@@ -31,9 +31,6 @@ freeStyleJob(id) {
             removeAction('DELETE')
         }
     }
-    triggers {
-        githubPush()
-    }
 }
 
 // execute job on startup

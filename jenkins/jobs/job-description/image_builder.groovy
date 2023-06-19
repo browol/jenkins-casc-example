@@ -8,7 +8,7 @@ pipelineJob('Docker Image Builder') {
                         url('https://github.com/browol/ci-cd-pipeline.git')
                         credentials('git-token-credentials')
                     }
-                    branch('jenkins')
+                    branch('main')
                 }
                 scriptPath('jenkins/jobs/pipelines/jenkinsfile.image-builder')
             }
@@ -46,7 +46,7 @@ pipelineJob('Docker Image Builder') {
             silentResponse(false)
             shouldNotFlattern(false)
             regexpFilterText("\$PULL_REQUEST_MERGED \$PULL_REQUEST_BASE_REF")
-            regexpFilterExpression("true jenkins")
+            regexpFilterExpression("true main")
         }
     }
 }
