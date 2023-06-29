@@ -17,7 +17,8 @@ pipeline {
                 script {
                     def defaultDeploy   = "blue"
                     def hasDeploy       = true
-                    env.deployName      = sh(script: "kubectl get deploy -n nginx -l app=nginx -o json | jq -r '.items[0].metadata.name | select (.!=null)'", returnStdout: true)
+                    env.deployName      = sh(script: "kubectl get deploy -n nginx -l app=nginx -o json | jq -r '.items[0].metadata.name | select (.!=null)'", returnStdout: true).trim()
+                    println "Deployment Name: ${env.deployName}"
                     if (env.deployName.isEmpty()) {
                         hasDeploy  = false
                         env.deployName = defaultDeploy
@@ -28,8 +29,12 @@ pipeline {
                     }
 
                     def buildCmd = "kustomize build nginx/nginx-unprivileged/deploy/${env.deployName}"
-                    sh("${buildCmd} | kubectl apply -f -")
-                    sh("${buildCmd} | kubectl get -f -")
+                    sh("${buildCmd} | kubectl apply -n nginx -f -")
+                    sh("${buildCmd} | kubectl get -n nginx -f -")
+
+                    echo "Wait for deployment to be ready to test for 60 seconds."
+                    sleep(60)
+                    sh("kubectl get deploy/${env.deployName} -n nginx")
                 }
             }
         }
@@ -38,7 +43,7 @@ pipeline {
                 script {
                     def reportName  = "result-${env.BUILD_NUMBER}.html"
                     def command     = "zap-baseline.py -t http://nginx.nginx.svc.cluster.local:8080/ -I -j --auto -r ${reportName}"
-                    def pod         = sh(script: "kubectl get pods -n infra-jenkins --selector=app=zap -o=jsonpath='{.items[0].metadata.name}'", returnStdout: true)
+                    def pod         = sh(script: "kubectl get pods -n infra-jenkins --selector=app=zap -o=jsonpath='{.items[0].metadata.name}'", returnStdout: true).trim()
                     sh("kubectl exec -it pod/$pod -n infra-jenkins -- /bin/sh -c '${command} && exit 0'")
                     sh("kubectl cp infra-jenkins/$pod:/zap/wrk/${reportName} '${WORKSPACE}/${reportName}'")
                 }

@@ -5,10 +5,6 @@ metadata:
     app: nginx
   name: nginx
 spec:
-  ports:
-    - port: 8080
-      protocol: TCP
-      targetPort: web
   selector:
     app: nginx
     version: blue
