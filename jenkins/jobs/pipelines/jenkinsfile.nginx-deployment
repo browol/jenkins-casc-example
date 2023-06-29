@@ -52,7 +52,7 @@ pipeline {
         stage('Cleanup') {
             steps {
                 script {
-                    name = env.deployName == "blue" ? "gree" : "blue"
+                    name = env.deployName == "blue" ? "green" : "blue"
                     echo "Removing ${name} deployment from nginx namespace."
                     sh("kubectl delete deploy/${name} -n nginx --ignore-not-found")
                 }
