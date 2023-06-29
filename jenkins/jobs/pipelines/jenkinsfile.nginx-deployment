@@ -28,8 +28,12 @@ pipeline {
                     }
 
                     def buildCmd = "kustomize build nginx/nginx-unprivileged/deploy/${env.deployName}"
-                    sh("${buildCmd} | kubectl apply -f -")
-                    sh("${buildCmd} | kubectl get -f -")
+                    sh("${buildCmd} | kubectl apply -n nginx -f -")
+                    sh("${buildCmd} | kubectl get -n nginx -f -")
+
+                    echo "Wait for deployment to be ready to test for 60 seconds."
+                    sleep(60)
+                    sh("kubectl get deploy/${env.deployName} -n nginx")
                 }
             }
         }
