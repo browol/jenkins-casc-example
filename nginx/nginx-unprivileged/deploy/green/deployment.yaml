@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: nginx
-        image: sa1devbrowolakscluster.azurecr.io/nginx/nginx-unprivileged:0.1.2
+        image: sa1devbrowolakscluster.azurecr.io/nginx/nginx-unprivileged:0.1.4
         imagePullPolicy: Always
         readinessProbe:
           httpGet:
