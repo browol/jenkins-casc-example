@@ -4,20 +4,22 @@ kind: Deployment
 metadata:
   labels:
     app: nginx
-  name: nginx
+  name: blue
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: nginx
+      version: blue
   template:
     metadata:
       labels:
         app: nginx
+        version: blue
     spec:
       containers:
       - name: nginx
-        image: acrdemo3fh45a.azurecr.io/nginx/nginx-unprivileged:2023-06
+        image: sa1devbrowolakscluster.azurecr.io/nginx/nginx-unprivileged:2023-06
         imagePullPolicy: Always
         readinessProbe:
           httpGet:

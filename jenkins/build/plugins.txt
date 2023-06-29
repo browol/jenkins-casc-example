@@ -31,3 +31,4 @@ kubernetes:3937.vd7b_82db_e347b_
 workflow-aggregator:596.v8c21c963d92d
 parameterized-trigger:2.45
 generic-webhook-trigger:1.86.3
+ws-cleanup:0.45

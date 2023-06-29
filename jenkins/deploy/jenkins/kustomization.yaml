@@ -7,4 +7,5 @@ resources:
 - namespace.yaml
 - service.yaml
 - rbac.yaml
+- zap.yaml
 namespace: infra-jenkins
