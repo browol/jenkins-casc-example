@@ -20,7 +20,7 @@ spec:
         app.kubernetes.io/name: jenkins
     spec:
       containers:
-      - image: acrdemo3fh45a.azurecr.io/jenkins/jenkins:extended-v2.401.1
+      - image: sa1devbrowolakscluster.azurecr.io/jenkins/jenkins:extended-v2.401.1
         imagePullPolicy: Always
         name: jenkins
         ports:
@@ -48,6 +48,8 @@ spec:
           value: main
         - name: DOCKER_CONFIG
           value: /.docker
+        - name: CONTAINER_REGISTRY_URL
+          value: sa1devbrowolakscluster.azurecr.io
         volumeMounts:
         - name: env-jenkins
           mountPath: /secrets/jenkins

@@ -1,3 +1,5 @@
+def env = System.getenv()
+
 pipelineJob('Nginx Deployment') {
     displayName('Nginx Deployment')
     definition {
@@ -5,10 +7,10 @@ pipelineJob('Nginx Deployment') {
             scm {
                 git {
                     remote {
-                        url('https://github.com/browol/ci-cd-pipeline.git')
+                        url(env['CONFIGURATION_REPOSITORY_URL'])
                         credentials('git-token-credentials')
                     }
-                    branch('main')
+                    branch(env['CONFIGURATION_REPOSITORY_BRANCH'])
                 }
                 scriptPath('jenkins/jobs/pipelines/jenkinsfile.nginx-deployment')
             }

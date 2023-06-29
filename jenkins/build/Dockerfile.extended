@@ -1,6 +1,8 @@
+ARG IMAGE
+ARG TAG
 FROM moby/buildkit:master as buildctl
 
-FROM acrdemo3fh45a.azurecr.io/jenkins/jenkins:base-v2.401.1
+FROM ${IMAGE}:${TAG}
 
 USER root
 
@@ -48,6 +50,17 @@ RUN set -o xtrace -o nounset && \
     binary="/usr/local/bin/yq" && \
     curl -fsSL --output ${binary} ${location} && \
     chmod +x ${binary}
+
+# See https://github.com/aquasecurity/trivy/releases
+ARG TRIVY_VERSION=0.42.1
+RUN set -o xtrace -o nounset && \
+    archive=$(mktemp) && \
+    location="https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz" && \
+    binary="/usr/local/bin/trivy" && \
+    curl -fsSL --output ${archive} ${location} && \
+    tar -xvf ${archive} -C /usr/local/bin/ trivy && \
+    chmod +x ${binary} && \
+    rm ${archive}
 
 ARG BUILDCTL_PATH=/usr/bin/buildctl
 COPY --from=buildctl $BUILDCTL_PATH $BUILDCTL_PATH

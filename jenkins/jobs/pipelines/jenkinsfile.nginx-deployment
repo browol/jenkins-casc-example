@@ -1,19 +1,62 @@
-import java.text.SimpleDateFormat
-import java.util.Date
-
 pipeline {
     agent {
         label('built-in')
     }
+    options {
+        skipDefaultCheckout(true)
+    }
     stages {
+        stage('Checkout') {
+            steps {
+                cleanWs()
+                checkout scm
+            }
+        }
         stage('Deploy') {
             steps {
                 script {
-                    def buildCmd = "kustomize build nginx/nginx-unprivileged/deploy"
+                    def defaultDeploy   = "blue"
+                    def hasDeploy       = true
+                    env.deployName      = sh(script: "kubectl get deploy -n nginx -l app=nginx -o json | jq -r '.items[0].metadata.name | select (.!=null)'", returnStdout: true)
+                    if (env.deployName.isEmpty()) {
+                        hasDeploy  = false
+                        env.deployName = defaultDeploy
+                    } else if (env.deployName == "blue") {
+                        env.deployName = "green"
+                    } else {
+                        env.deployName = "blue"
+                    }
+
+                    def buildCmd = "kustomize build nginx/nginx-unprivileged/deploy/${env.deployName}"
                     sh("${buildCmd} | kubectl apply -f -")
                     sh("${buildCmd} | kubectl get -f -")
                 }
             }
+        }
+        stage('Blackbox Testing') {
+            steps {
+                script {
+                    def reportName  = "result-${env.BUILD_NUMBER}.html"
+                    def command     = "zap-baseline.py -t http://nginx.nginx.svc.cluster.local:8080/ -I -j --auto -r ${reportName}"
+                    def pod         = sh(script: "kubectl get pods -n infra-jenkins --selector=app=zap -o=jsonpath='{.items[0].metadata.name}'", returnStdout: true)
+                    sh("kubectl exec -it pod/$pod -n infra-jenkins -- /bin/sh -c '${command} && exit 0'")
+                    sh("kubectl cp infra-jenkins/$pod:/zap/wrk/${reportName} '${WORKSPACE}/${reportName}'")
+                }
+            }
+        }
+        stage('Cleanup') {
+            steps {
+                script {
+                    name = env.deployName == "blue" ? "gree" : "blue"
+                    echo "Removing ${name} deployment from nginx namespace."
+                    sh("kubectl delete deploy/${name} -n nginx --ignore-not-found")
+                }
+            }
+        }
+    }
+    post {
+        always {
+            cleanWs(cleanWhenNotBuilt: false, deleteDirs: true, disableDeferredWipeout: true, notFailBuild: true)
         }
     }
 }

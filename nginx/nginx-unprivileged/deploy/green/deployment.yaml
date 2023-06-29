@@ -1,0 +1,54 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: nginx
+  name: green
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+      version: green
+  template:
+    metadata:
+      labels:
+        app: nginx
+        version: green
+    spec:
+      containers:
+      - name: nginx
+        image: sa1devbrowolakscluster.azurecr.io/nginx/nginx-unprivileged:2023-06
+        imagePullPolicy: Always
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 30
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 30
+        ports:
+        - containerPort: 8080
+          name: web
+          protocol: TCP
+        securityContext:
+          seccompProfile:
+            type: RuntimeDefault
+          privileged: false
+          runAsUser: 1001
+          runAsNonRoot: true
+          runAsGroup: 1001
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+      securityContext:
+        fsGroup: 1001
+        supplementalGroups:
+          - 1001
